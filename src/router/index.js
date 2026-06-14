@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import BackendLayout from '../components/BackendLayout.vue'
+import AuthLayout from '../components/AuthLayout.vue'
+
 // import { Children } from 'react'
 
 // 路由配置
@@ -51,6 +53,15 @@ const routes = [
       }
     ]
   },
+  // 第三个路由规则 登录注册页面（嵌套路由）
+  {
+    path: '/auth',
+    component: AuthLayout,
+    children: [
+      { path: 'login', component: () => import('@/views/login.vue'), meta: { title: '登录' } },
+      { path: 'register', component: () => import('@/views/register.vue'), meta: { title: '注册' } }
+    ]
+  }
 
 ]
 const router = createRouter({
