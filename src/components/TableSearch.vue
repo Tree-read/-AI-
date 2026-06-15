@@ -27,6 +27,9 @@
     <el-button type="primary" @click="handleSearch">查询</el-button>
     <el-button @click="handleReset(ruleFormRef)">重置</el-button>
    </el-row>
+   
+   <!-- 插槽：用于渲染表格等内容 -->
+   <slot></slot>
   </el-form>
 </template>
 <script setup>
