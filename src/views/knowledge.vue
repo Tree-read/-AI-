@@ -3,7 +3,7 @@
     <!-- 父传子 通过属性title来传递值 -->
     <PageHead title="知识文章">
       <template #buttons>
-        <el-button type="primary">新增</el-button>
+        <el-button type="primary" @click="dialogVisible=true">新增</el-button>
       </template>
     </PageHead>
     <TableSearch :formItem="formItem" @search="handleSearch">
@@ -46,8 +46,25 @@
        :page-size="pagination.size"
        layout="prev, pager, next" 
        :total="pagination.total"
-       @change="handleChange" />
+       @change="handleChange"
+        />
     </TableSearch>
+    <!--v-model:modelValue="dialogVisible" 父传子 通过modelValue属性来传递值 -->
+
+    <!-- v-model:modelValue 会自动完成两件事
+      把父组件的 dialogVisible 值传给子组件的 modelValue prop
+      监听子组件发出的 update:modelValue 事件，自动更新父组件的 dialogVisible -->
+
+      <!-- 在模板中，这两种写法等价 -->
+<!-- <ArticleDialog :categories="categories" />
+等价于  because ref的自动解包机制 在template中不需要加.value vue会自动加上
+<ArticleDialog :categories="categories.value" /> -->
+    <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" @success="handleSuccess"/>
+    <!-- 等价于 -->
+     <!-- <ArticleDialog 
+     :modelValue="dialogVisible"              
+     @update:modelValue="dialogVisible = $event" 
+/> -->
   </div>
 </template>
 <script setup>
@@ -55,6 +72,16 @@ import PageHead from '@/components/PageHead.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import { categoryTree,articlePage } from '@/api/admin'
 import { onMounted,ref,reactive } from 'vue'
+import ArticleDialog from '@/components/ArticleDialog.vue'
+
+// 新增和编辑文章弹窗
+const dialogVisible=ref(false)
+// 新增和编辑文章弹窗成功后 刷新列表
+const handleSuccess=()=>{
+  // dialogVisible.value=false
+  // handleSearch()
+}
+
 const formItem=[
   {comp:'input',prop:'title',label:'文章标题',placeholder:'请输入文章标题'},
   {comp:'select',prop:'categoryId',label:'分类',placeholder:'请输入文章内容'},
@@ -82,7 +109,7 @@ const params={
 }
 // console.log(params)
   const response=await articlePage(params)
-  console.log(response)
+  // console.log(response)
   // 后端返回结构是 {code, msg, data: {...}}，真正的数据在 response.data 里面
   const {records,total}=response.data
   // console.log('文章列表数据:', records)
@@ -114,6 +141,7 @@ const handleChange=(page)=>{
     }
 
   })
+  console.log(categories)
  formItem[1].options=categories.value
 //  获取列表 调用接口
  handleSearch({
