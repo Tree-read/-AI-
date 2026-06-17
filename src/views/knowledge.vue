@@ -3,7 +3,7 @@
     <!-- 父传子 通过属性title来传递值 -->
     <PageHead title="知识文章">
       <template #buttons>
-        <el-button type="primary" @click="dialogVisible=true">新增</el-button>
+        <el-button type="primary" @click="handleEdit({})">新增</el-button>
       </template>
     </PageHead>
     <TableSearch :formItem="formItem" @search="handleSearch">
@@ -34,10 +34,10 @@
         <el-table-column prop="createdAt" label="发布时间" width="150"/>
         <el-table-column  label="操作" width="240" fixed="right">
           <template #default="scope">
-           <el-button text type="primary">编辑</el-button>
-           <el-button v-if="scope.row.status===0||scope.row.status===2" text type="success">发布</el-button>
-           <el-button v-if="scope.row.status===1" text type="warning">下线</el-button>
-           <el-button text type="danger">删除</el-button>
+           <el-button  @click="handleEdit(scope.row)" text type="primary">编辑</el-button>
+           <el-button @click="handlePublish(scope.row)" v-if="scope.row.status===0||scope.row.status===2" text type="success">发布</el-button>
+           <el-button @click="handleUnpublish(scope.row)" v-if="scope.row.status===1" text type="warning" >下线</el-button>
+           <el-button @click="handleDelete(scope.row)" text type="danger">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -59,7 +59,7 @@
 <!-- <ArticleDialog :categories="categories" />
 等价于  because ref的自动解包机制 在template中不需要加.value vue会自动加上
 <ArticleDialog :categories="categories.value" /> -->
-    <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" @success="handleSuccess"/>
+    <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" :article="currentArticle" @success="handleSuccess"/>
     <!-- 等价于 -->
      <!-- <ArticleDialog 
      :modelValue="dialogVisible"              
@@ -70,16 +70,88 @@
 <script setup>
 import PageHead from '@/components/PageHead.vue'
 import TableSearch from '@/components/TableSearch.vue'
-import { categoryTree,articlePage } from '@/api/admin'
+import { categoryTree,articlePage ,getArticleDetail,changeArticleStatus,deleteArticle} from '@/api/admin'
 import { onMounted,ref,reactive } from 'vue'
 import ArticleDialog from '@/components/ArticleDialog.vue'
+import { ElMessageBox,ElMessage } from 'element-plus'
 
 // 新增和编辑文章弹窗
 const dialogVisible=ref(false)
+const currentArticle=ref(null)
 // 新增和编辑文章弹窗成功后 刷新列表
 const handleSuccess=()=>{
-  // dialogVisible.value=false
-  // handleSearch()
+  // 刷新文章列表
+  handleSearch({})
+}
+// 编辑文章
+const handleEdit=(row)=>{
+  // 如果没有 id 或者 id 为空，就是新增
+  if(!row.id){
+    // 新增
+    currentArticle.value=null
+    dialogVisible.value=true
+  }else{
+    // 编辑
+    getArticleDetail(row.id).then(res=>{
+      // console.log(res,'编辑文章')
+      currentArticle.value=res.data
+      dialogVisible.value=true
+    })
+  }
+}
+
+// 发布文章
+const handlePublish=(row)=>{
+ElMessageBox.confirm(
+  `确认发布文章 ${row.title} 吗？`,
+  '确认',{
+    confirmButtonText:'确认发布',
+    cancelButtonText:'取消',
+    type:'info'
+  }
+).then(() => {
+changeArticleStatus(row.id,{status:1}).then(res=>{
+    ElMessage.success('文章发布成功')
+    // 刷新文章列表
+    handleSearch({})
+  // 刷新文章列表
+})
+})
+}
+// 下线文章
+const handleUnpublish=(row)=>{
+ElMessageBox.confirm(
+  `确认下线文章 ${row.title} 吗？`,
+  '确认',{
+    confirmButtonText:'确认下线',
+    cancelButtonText:'取消',
+    type:'warning'
+  }
+).then(() => {
+changeArticleStatus(row.id,{status:2}).then(res=>{
+    ElMessage.success('文章下线成功')
+    // 刷新文章列表
+    handleSearch({})
+  // 刷新文章列表
+  })
+})
+}
+// 删除文章
+const handleDelete=(row)=>{
+ElMessageBox.confirm(
+  `确认删除文章 ${row.title} 吗？`,
+  '确认',{
+    confirmButtonText:'确认删除',
+    cancelButtonText:'取消',
+    type:'danger'
+  }
+).then(() => {
+deleteArticle(row.id).then(res=>{
+    ElMessage.success('文章删除成功')
+    // 刷新文章列表
+    handleSearch({})
+})
+})
 }
 
 const formItem=[

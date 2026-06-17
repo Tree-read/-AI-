@@ -1,6 +1,6 @@
 <template>
   <el-dialog 
-    title="文章详情"
+    :title="isEdit?'编辑文章':'新增文章'"
     v-model="dialogVisible"
     width="50%"
     @close="handleClose"
@@ -81,14 +81,14 @@
     <template #footer>
       <el-button  @click="btnPreview=!btnPreview">{{ btnPreview?'隐藏预览':'预览效果' }}</el-button>
       <el-button  @click="handleClose">取消</el-button>
-      <el-button  @click="handleSubmit" :loading="loading">创建文章</el-button>
+      <el-button  @click="handleSubmit" :loading="loading" type="primary">{{ isEdit?'编辑文章':'新增文章' }}</el-button>
     </template>
   </el-dialog>
 </template>
 <script setup>
 import { ElMessage } from 'element-plus'
-import { ref ,reactive,computed,nextTick } from 'vue'
-import { uploadFile,createArticle } from '@/api/admin'
+import { ref ,reactive,computed,nextTick,watch} from 'vue'
+import { uploadFile,createArticle,updateArticle } from '@/api/admin'
 import { fileBaseUrl } from '@/config/index'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 
@@ -101,6 +101,10 @@ const props=defineProps({
   categories:{
     type:Array,
     default:()=>[]
+  },
+  article:{
+    type:Object,
+    default:null
   }
 })
 // 子组件不可以修改父组件（props.modelValue）的值 
@@ -132,6 +136,24 @@ const dialogVisible=computed(
  }
 )
 
+// !!把数据类型转换为布尔值
+const isEdit=computed(()=>!!props.article?.id)
+// 监听编辑数据
+// 第一个参数：通过回调函数返回监听的响应式数据
+// 第二个参数：回调函数 当监听的响应式数据发生变化时，会触发回调函数
+watch(()=>props.article,async(newVal)=>{
+  if(newVal){
+    nextTick(()=>{
+      Object.assign(formData,newVal)
+    // 使用现有的id
+    businessId.value=newVal.id
+    // 封面url
+    image.value=fileBaseUrl+newVal.coverImage
+    })
+    
+  }
+})
+
 const handleClose=()=>{
   // props 是只读的 ，Vue 不允许子组件直接修改 props。
   //   props.modelValue=false（报错！）
@@ -140,6 +162,15 @@ const handleClose=()=>{
 // emit('update:modelValue', false)
 //     ↓
 // 父组件 dialogVisible = false
+// 重置调单 
+formRef.value.resetFields()
+// 重置 businessId
+businessId.value=null
+// 重置封面图片
+handleRemove()
+// 清除标签
+formData.tagArray=[]
+  
   emit('update:modelValue', false)
 }
 
@@ -178,6 +209,7 @@ const commonTags = [
 // 上传前的回调函数 用来校验文件类型和大小等
 // 判断图片是否上传成功
 const image=ref('')
+const businessId=ref('')
 const beforeUpload=(file)=>{
 // 针对上传的文件进行校验
 // console.log(file)
@@ -197,13 +229,13 @@ return true
 }
 // 调用上传文件接口 async await
 const handleUploadRequest=async({file})=>{
-  // UUID 生成一个随机字符串
-  // crypto 专门用来做加密的一个对象
-  const businessId=crypto.randomUUID()
-  // console.log(businessId)
+  // 如果是编辑模式，使用现有的 businessId；否则生成新的 UUID
+  if(!businessId.value){
+    businessId.value=crypto.randomUUID()
+  }
   
   const fileRes = await uploadFile(file,{
-   businessId:businessId,
+   businessId:businessId.value,
  })
  console.log('完整响应:', fileRes)
  console.log('filePath:', fileRes.filePath)
@@ -246,26 +278,31 @@ const handleEditorCreated=(editor)=>{
 const btnPreview=ref(false)
 
 // 提交新增表单
-// 提交新增表单
+// 提交表单
 const formRef=ref(null)
-// 提交新增表单
 const loading=ref(false)
 const handleSubmit=()=>{
   formRef.value.validate((valid,fields)=>{
     if(valid){
       loading.value=true
+      console.log(formData,'FormData')
+      const submitData={
+        ...formData,
+        tags:formData.tagArray.join(',')
+      }
+      delete submitData.tagArray
+      
+      // 根据是否是编辑模式调用不同的接口
+      const apiPromise = isEdit.value 
+        ? updateArticle(submitData) 
+        : createArticle(submitData)
+      apiPromise.then(res=>{
+        loading.value=false
+        ElMessage.success(isEdit.value ? '文章更新成功' : '文章创建成功')
+        emit('success')
+        handleClose()
+      })
     }
-    console.log(formData,'FormData')
-    const submitData={
-      ...formData,
-      tags:formData.tagArray.join(',')
-    }
-    delete submitData.tagArray
-    // 调用创建文章接口
-    createArticle(submitData).then(res=>{
-      loading.value=false
-      emit('success')
-    })
   })
 }
 // 提交新增表单

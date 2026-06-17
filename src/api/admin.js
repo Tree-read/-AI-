@@ -48,3 +48,23 @@ export function uploadFile(file, businessInfo) {
 export function createArticle(data) {
   return service.post('/knowledge/article', data)
 }
+
+// 定义编辑文章接口
+export function getArticleDetail(id) {
+  return service.get('/knowledge/article/' + id)
+}
+
+// 定义更新文章内容接口
+export function updateArticle(data) {
+  return service.put('/knowledge/article/' + data.id, data)
+}
+
+// 定义更新文章状态接口（PUT /knowledge/article/{id}/status）
+export function changeArticleStatus(id, params) {
+  return service.put(`/knowledge/article/${id}/status`, params)
+}
+
+// 定义删除文章接口
+export function deleteArticle(id) {
+  return service.delete(`/knowledge/article/${id}`)
+}
