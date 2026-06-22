@@ -35,12 +35,14 @@
 <script setup>
 import {ref,reactive,computed} from 'vue'
 
+// 子组件通过 props 接收 父组件传递的 formItem 来使用
 const props=defineProps({
   formItem: {
     type: Array,
     default: () => []
   }
 })
+// 1 子组件通过 defineEmits 声明可以触发的 search 事件
 const emit=defineEmits(['search'])
 // 计算属性 监听props
 const formItemAttrs=computed(()=>{
@@ -63,6 +65,9 @@ const isComp=(comp)=>{
 // 查询
 const handleSearch=()=>{
   // console.log(formData)
+  // 触发 search 事件
+  // 事件参数为 formData
+  // 2 子组件通过 emit('事件名', 数据) 向上触发事件
   emit('search',formData)
 }
 // 重置

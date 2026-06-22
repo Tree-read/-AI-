@@ -69,7 +69,8 @@
     </div>
    </div>
    <!-- 弹窗底部按钮 具名插槽 -->
-    <!-- <template #footer> 按钮自动右对齐 footer 区域默认 justify-content: flex-end -->
+    <!-- <template #footer> 按钮自动右对齐
+       footer 区域默认 justify-content: flex-end -->
    <template #footer>
     <el-button  @click="showDetailDialog=false">关闭</el-button>
    </template>

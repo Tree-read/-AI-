@@ -78,3 +78,12 @@ export function getConsultationPage(params) {
 export function getConsultationDetail(sessionId) {
   return service.get(`/psychological-chat/sessions/${sessionId}/messages`)
 }
+
+// 定义情绪日志接口
+export function getEmotionalPage(params) {
+  return service.get('/emotion-diary/admin/page', { params })
+}
+// 定义删除情绪日志接口
+export function deleteEmotional(id) {
+  return service.delete(`/emotion-diary/admin/${id}`)
+}
