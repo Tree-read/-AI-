@@ -68,3 +68,13 @@ export function changeArticleStatus(id, params) {
 export function deleteArticle(id) {
   return service.delete(`/knowledge/article/${id}`)
 }
+
+//定义咨询记录接口
+export function getConsultationPage(params) {
+  return service.get(`/psychological-chat/sessions`, { params: params })
+}
+
+// 定义咨询记录详情接口
+export function getConsultationDetail(sessionId) {
+  return service.get(`/psychological-chat/sessions/${sessionId}/messages`)
+}
