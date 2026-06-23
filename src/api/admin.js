@@ -87,3 +87,8 @@ export function getEmotionalPage(params) {
 export function deleteEmotional(id) {
   return service.delete(`/emotion-diary/admin/${id}`)
 }
+
+// 定义数据分析接口
+export function getAnalysisData() {
+  return service.get('/data-analytics/overview')
+}
