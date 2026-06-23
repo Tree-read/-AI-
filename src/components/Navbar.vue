@@ -2,6 +2,11 @@
 import { Expand } from '@element-plus/icons-vue';
 import {ref} from 'vue'
 import {useAdminStore} from '@/stores/admin'
+import {useRouter,useRoute} from 'vue-router'
+// 
+const router=useRouter()// 路由实例
+const route=useRoute()// 路由实例
+
 const handleCommand=(command)=>{
   console.log(command)
 }
@@ -21,7 +26,7 @@ const handleCollapse=()=>{
       <el-button @click="handleCollapse">
       <el-icon><Expand /></el-icon>
     </el-button>
-      <p class="page-title">数据分析</p>
+      <p class="page-title">{{ route.meta.title }}</p>
   </div>
 <!-- 2 导航栏右边 -->
   <div class="flex-box">
